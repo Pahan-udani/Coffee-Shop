@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Brew & Bloom Coffee Shop</title>
+  <style>
+    /* Reset & basics */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f6f6f6;
+      color: #333;
+      overflow-x: hidden;
+    }
+    /* Page container with fade animations */
+    .page {
+      display: none;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      min-height: 100vh;
+    }
+    .active {
+      display: block;
+      opacity: 1;
+    }
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #2c1608;
+      color: white;
+      padding: 10px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .search-bar {
+      flex-grow: 1;
+      margin: 0 10px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 25px;
+      border: none;
+      font-size: 14px;
+    }
+    /* Home page */
+    .home-title {
+      margin: 16px 0 10px;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      color: #3b1e07;
+      text-shadow: 1px 1px 3px #b89367;
+    }
+    .coffee-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+      gap: 15px;
+    }
+    .coffee-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .coffee-card:hover {
+      box-shadow: 0 6px 12px rgb(0 0 0 / 0.2);
+      transform: translateY(-5px);
+    }
+    .coffee-card img {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      border-bottom: 1px solid #ddd;
+    }
+    .coffee-info {
+      padding: 8px 10px;
+    }
+    .coffee-name {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #3b1e07;
+    }
+    .coffee-price {
+      color: #555;
+      font-weight: bold;
+    }
+    /* Order page */
+    .order-image {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 20px;
+      display: block;
+      margin: 20px auto 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .order-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      color: #3b1e07;
+      text-shadow: 1px 1px 2px #b89367;
+    }
+    .order-desc {
+      max-width: 300px;
+      margin: 0 auto 25px;
+      font-size: 16px;
+      line-height: 1.4;
+      color: #5a3e1b;
+      text-align: center;
+    }
+    /* Quantity controls */
+    .quantity-control {
+      max-width: 300px;
+      margin: 0 auto 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      font-weight: 600;
+    }
+    .quantity-control button {
+      background: #a5692f;
+      border: none;
+      color: white;
+      font-size: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgb(0 0 0 / 0.2);
+      transition: background-color 0.2s ease;
+    }
+    .quantity-control button:hover {
+      background: #854e13;
+    }
+    .quantity-display {
+      font-size: 20px;
+      min-width: 40px;
+      text-align: center;
+    }
+    /* Buttons row */
+    .btn-row {
+      max-width: 300px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn {
+      flex-grow: 1;
+      padding: 12px 0;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgb(0 0 0 / 0.15);
+      transition: background-color 0.3s ease;
+    }
+    .btn.save {
+      background: #6f4e37;
+      color: white;
+    }
+    .btn.save:hover {
+      background: #583a24;
+    }
+    .btn.cancel {
+      background: #ddd;
+      color: #555;
+    }
+    .btn.cancel:hover {
+      background: #bbb;
+    }
+    .btn.add-cart {
+      background: #c78f3d;
+      color: white;
+    }
+    .btn.add-cart:hover {
+      background: #a86f21;
+    }
+    /* Cart page */
+    #cartPage .cart-list {
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+    .cart-item {
+      background: white;
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    .cart-info {
+      flex-grow: 1;
+    }
+    .cart-name {
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #3b1e07;
+    }
+    .cart-qty-price {
+      font-size: 14px;
+      color: #666;
+    }
+    .cart-actions button {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #a5692f;
+      transition: color 0.3s ease;
+    }
+    .cart-actions button:hover {
+      color: #854e13;
+    }
+    .cart-total {
+      max-width: 400px;
+      margin: 20px auto;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: right;
+      color: #3b1e07;
+      text-shadow: 1px 1px 2px #b89367;
+    }
+    /* Responsive */
+    @media (max-width: 500px) {
+      .coffee-list {
+        grid-template-columns: repeat(auto-fill,minmax(120px,1fr));
+      }
+      .order-title {
+        font-size: 22px;
+      }
+      .order-desc {
+        font-size: 14px;
+        max-width: 90%;
+      }
+      .btn-row {
+        flex-direction: column;
+      }
+      .btn {
+        flex-grow: unset;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Home Page -->
+<div class="page active" id="homePage">
+  <header>
+    <div class="menu-icon" title="View Cart" onclick="navigateTo('cartPage')">&#128722;</div>
+    <input type="text" class="search-bar" placeholder="Search coffee..." id="searchInput" />
+  </header>
+  <div class="home-title">BREW & BLOOM</div>
+  <div class="coffee-list" id="coffeeList"></div>
+</div>
+
+<!-- Order Page -->
+<div class="page" id="orderPage">
+  <header>
+    <button class="btn cancel" onclick="navigateTo('homePage')" style="flex-shrink: 0;">&larr; Back</button>
+  </header>
+  <img src="" alt="Coffee Image" class="order-image" id="orderImage" />
+  <div class="order-title" id="orderTitle">Coffee Name</div>
+  <div class="order-desc" id="orderDescription">Coffee description...</div>
+
+  <div class="quantity-control">
+    <button onclick="changeQuantity(-1)">-</button>
+    <div class="quantity-display" id="quantityDisplay">1</div>
+    <button onclick="changeQuantity(1)">+</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn save" onclick="saveOrder()">Save</button>
+    <button class="btn cancel" onclick="cancelOrder()">Cancel</button>
+    <button class="btn add-cart" onclick="addToCart()">Add to Cart</button>
+  </div>
+</div>
+
+<!-- Cart Page -->
+<div class="page" id="cartPage">
+  <header>
+    <button class="btn cancel" onclick="navigateTo('homePage')" style="flex-shrink: 0;">&larr; Back</button>
+  </header>
+  <h2 style="text-align:center; color:#3b1e07; margin: 20px 0 10px; text-shadow: 1px 1px 2px #b89367;">Your Cart</h2>
+  <div class="cart-list" id="cartList"></div>
+  <div class="cart-total" id="cartTotal"></div>
+</div>
+
+<script>
+  // Sample coffee products data with updated Espresso image URL
+  const coffeeProducts = [
+    {
+      id: 1,
+      name: "Classic Cappuccino",
+      price: 3.99,
+      image: "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&q=80",
+      description: "A little cup with a lot of charm. Perfectly balanced, smooth and creamy."
+    },
+    {
+      id: 2,
+      name: "Latte",
+      price: 3.54,
+      image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80",
+      description: "Rich espresso with creamy steamed milk and a thin layer of foam."
+    },
+    {
+      id: 3,
+      name: "French Press Coffee",
+      price: 2.84,
+      image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80",
+      description: "Full-bodied coffee brewed in a French press for a bold taste."
+    },
+{
+  id: 4,
+  name: "Espresso",
+  price: 2.50,
+  image: "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&q=80",
+  description: "Strong and bold espresso shot to wake you up."
+}
+
+  ];
+
+  // Globals for order page & cart
+  let currentOrder = null;
+  let quantity = 1;
+
+  // DOM Elements
+  const coffeeListEl = document.getElementById('coffeeList');
+  const orderPage = document.getElementById('orderPage');
+  const homePage = document.getElementById('homePage');
+  const cartPage = document.getElementById('cartPage');
+
+  const orderImage = document.getElementById('orderImage');
+  const orderTitle = document.getElementById('orderTitle');
+  const orderDescription = document.getElementById('orderDescription');
+  const quantityDisplay = document.getElementById('quantityDisplay');
+
+  const cartListEl = document.getElementById('cartList');
+  const cartTotalEl = document.getElementById('cartTotal');
+
+  // Cart data
+  let cart = [];
+
+  // Render coffee list on home page
+  function renderCoffeeList(products) {
+    coffeeListEl.innerHTML = '';
+    products.forEach(product => {
+      const card = document.createElement('div');
+      card.className = 'coffee-card';
+
+      let imgSrc = product.image || 'https://via.placeholder.com/400x300?text=No+Image';
+
+      card.innerHTML = `
+        <img src="${imgSrc}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image';" />
+        <div class="coffee-info">
+          <div class="coffee-name">${product.name}</div>
+          <div class="coffee-price">$${product.price.toFixed(2)}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => openOrderPage(product));
+      coffeeListEl.appendChild(card);
+    });
+  }
+
+  // Open order page with selected coffee
+  function openOrderPage(product) {
+    currentOrder = {...product};
+    quantity = 1;
+    orderImage.src = currentOrder.image;
+    orderImage.alt = currentOrder.name;
+    orderTitle.textContent = currentOrder.name;
+    orderDescription.textContent = currentOrder.description || "No description available.";
+    quantityDisplay.textContent = quantity;
+
+    navigateTo('orderPage');
+  }
+
+  // Change quantity by delta
+  function changeQuantity(delta) {
+    quantity += delta;
+    if (quantity < 1) quantity = 1;
+    quantityDisplay.textContent = quantity;
+  }
+
+  // Save order (just alert for now)
+  function saveOrder() {
+    alert(`Saved order for ${quantity} x ${currentOrder.name}`);
+  }
+
+  // Cancel order, return home
+  function cancelOrder() {
+    currentOrder = null;
+    navigateTo('homePage');
+  }
+
+  // Add current order to cart
+  function addToCart() {
+    if (!currentOrder) return;
+
+    // Check if already in cart, increase quantity
+    const existingItem = cart.find(item => item.id === currentOrder.id);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      cart.push({...currentOrder, quantity});
+    }
+
+    alert(`${quantity} x ${currentOrder.name} added to cart.`);
+    navigateTo('homePage');
+    renderCart();
+  }
+
+  // Render cart list and total
+  function renderCart() {
+    cartListEl.innerHTML = '';
+    if (cart.length === 0) {
+      cartListEl.innerHTML = '<p style="text-align:center; color:#555;">Your cart is empty.</p>';
+      cartTotalEl.textContent = '';
+      return;
+    }
+
+    let total = 0;
+    cart.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      total += itemTotal;
+
+      const cartItemEl = document.createElement('div');
+      cartItemEl.className = 'cart-item';
+
+      cartItemEl.innerHTML = `
+        <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/60x60?text=No+Img';" />
+        <div class="cart-info">
+          <div class="cart-name">${item.name}</div>
+          <div class="cart-qty-price">${item.quantity} x $${item.price.toFixed(2)} = $${itemTotal.toFixed(2)}</div>
+        </div>
+        <div class="cart-actions">
+          <button title="Remove 1" onclick="removeFromCart(${item.id})">&#8722;</button>
+          <button title="Add 1" onclick="addOneToCart(${item.id})">&#43;</button>
+          <button title="Delete" onclick="deleteFromCart(${item.id})">&#10005;</button>
+        </div>
+      `;
+      cartListEl.appendChild(cartItemEl);
+    });
+
+    cartTotalEl.textContent = `Total: $${total.toFixed(2)}`;
+  }
+
+  // Remove one quantity from cart item
+  function removeFromCart(id) {
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+    item.quantity--;
+    if (item.quantity <= 0) {
+      cart = cart.filter(i => i.id !== id);
+    }
+    renderCart();
+  }
+
+  // Add one quantity to cart item
+  function addOneToCart(id) {
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+    item.quantity++;
+    renderCart();
+  }
+
+  // Delete item completely from cart
+  function deleteFromCart(id) {
+    cart = cart.filter(i => i.id !== id);
+    renderCart();
+  }
+
+  // Navigation function
+  function navigateTo(pageId) {
+    [homePage, orderPage, cartPage].forEach(page => {
+      page.classList.remove('active');
+    });
+    document.getElementById(pageId).classList.add('active');
+  }
+
+  // Search filter function
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const filtered = coffeeProducts.filter(c => c.name.toLowerCase().includes(searchTerm));
+    renderCoffeeList(filtered);
+  });
+
+  // Initial render
+  renderCoffeeList(coffeeProducts);
+  renderCart();
+
+</script>
+
+</body>
+</html>
